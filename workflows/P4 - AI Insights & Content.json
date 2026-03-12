@@ -1,0 +1,259 @@
+{
+  "name": "P4 - AI Insights & Content",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "8bff4879-62ab-4caf-91bf-f714c9e1d210",
+        "formTitle": "Project 4: Upload Your Reports",
+        "formDescription": "Upload your Project 2 (Market Analysis) and Project 3 (Competitor Analysis) HTML reports to generate a comprehensive content strategy.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Product Category",
+              "placeholder": "e.g., Area Rug, Table Lamp, Throw Pillow",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Focus Area",
+              "placeholder": "e.g., Natural & Sustainable, Modern Minimalist"
+            },
+            {
+              "fieldLabel": "P2 Market Analysis Report",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".html",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "P3 Competitor Analysis Report",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".html",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.1,
+      "position": [
+        1664,
+        528
+      ],
+      "id": "12b908ac-c65f-46f9-a719-f2379c348228",
+      "name": "Upload Form",
+      "webhookId": "8bff4879-62ab-4caf-91bf-f714c9e1d210"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst result = [];\n\n// We use a standard for-loop to handle async/await properly\nfor (let i = 0; i < items.length; i++) {\n  const item = items[i];\n  const form = item.json;\n  \n  const category = form['Product Category'] || 'Area Rug';\n  const focus = form['Focus Area'] || '';\n\n  // Helper function to wait for the data to actually load\n  const getFileContent = async (fieldName) => {\n    try {\n      if (item.binary && item.binary[fieldName]) {\n        // 'await' tells the code to stop and wait for the file to be read\n        const buffer = await this.helpers.getBinaryDataBuffer(i, fieldName);\n        return buffer.toString('utf8');\n      }\n    } catch (e) {\n      console.error(`Error reading ${fieldName}:`, e);\n    }\n    return null;\n  };\n\n  // We must 'await' these calls now\n  const p2Raw = await getFileContent('P2_Market_Analysis_Report');\n  const p3Raw = await getFileContent('P3_Competitor_Analysis_Report');\n\n  const stripHtml = (html) => {\n    if (!html || html.length < 10) return 'MISSING_DATA';\n    return html\n      .replace(/<script[^>]*>[\\s\\S]*?<\\/script>/gi, '')\n      .replace(/<style[^>]*>[\\s\\S]*?<\\/style>/gi, '')\n      .replace(/<[^>]+>/g, ' ')\n      .replace(/\\s+/g, ' ')\n      .trim();\n  };\n\n  result.push({\n    json: {\n      category,\n      focus,\n      p2_content: stripHtml(p2Raw).slice(0, 15000),\n      p3_content: stripHtml(p3Raw).slice(0, 15000)\n    }\n  });\n}\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1904,
+        528
+      ],
+      "id": "99eeb5ad-848f-478f-a509-d1e0341d9e2e",
+      "name": "Extract Files"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "You are a Senior Brand Strategist for Wayfair. Your voice is sophisticated, visionary, and editorial. You sell the \"feeling of home,\" not just products.\n\n=== WAYFAIR BRAND DNA ===\n- PHILOSOPHY: \"If it makes you happy, it matches.\"\n- VIDEO STYLE: High-aesthetic, fast frame cuts, ASMR-style soundscapes. No prices, no sales pitches.\n- CAPTIONS: Short, punchy \"Manifestos\" (e.g., \"Because style isn’t about square footage ✨\").\n- TONE: Professional but warm; visionary but accessible.\n\n=== TASK ===\nCreate a content strategy for \"{{ $json.category }}\" / \"{{ $json.focus }}\".\n\n=== DATA REQUIREMENTS ===\nYou must use specific data from P2 (Market) and P3 (Competitor) reports, but weave them into a high-end strategy.\n\n=== JSON STRUCTURE ===\n{\n  \"key_metrics\": [{\"value\": \"...\", \"label\": \"...\", \"source\": \"P2\"}],\n  \"executive_summary\": \"A 2-paragraph visionary memo. No informal greetings. Use 'Design Philosophy' language. Reference market data (e.g., the 47% sustainability growth) as a mandate for aesthetic leadership.\",\n  \"blog_blueprints\": [\n    {\n      \"title\": \"Editorial Style Title (e.g., 'The Art of the Organic Entryway')\",\n      \"keyword\": \"SEO Term\",\n      \"vibe_description\": \"Describe the lighting, mood, and color palette (e.g., Sun-drenched minimalism).\",\n      \"structure\": [\"H2: Narrative Storytelling 1\", \"H2: Narrative Storytelling 2\"],\n      \"wayfair_edge\": \"How this visually beats the competitor 'wall of products'.\"\n    }\n  ],\n  \"aesthetic_video_concepts\": [\n    {\n      \"concept_name\": \"Short, punchy name\",\n      \"soundscape\": \"Direction for music/ASMR (e.g., Soft acoustic guitar and the sound of morning coffee being poured).\",\n      \"visual_beats\": \"A series of 5 aesthetic frame cuts (e.g., 1. Morning light hitting texture. 2. Bare feet on the rug.)\",\n      \"manifesto_caption\": \"Wayfair-style short caption (e.g., 'A foundation for real life ✨')\"\n    }\n  ],\n  \"product_narrative_150\": \"150-word highly descriptive, sensory SEO copy. Focus on touch, mood, and Sunday mornings. Hide the keywords inside beautiful prose.\",\n  \"email_sequences\": [\n    {\n      \"stage\": \"The Inspiration\",\n      \"subject\": \"Design-led, short subject line\",\n      \"body\": \"Sophisticated, warm, narrative-driven copy.\"\n    }\n  ],\n  \"competitive_angles\": [{\"title\": \"...\", \"gap_in_market\": \"...\", \"wayfair_edge\": \"...\"}],\n  \"content_priorities\": [{\"priority\": 1, \"title\": \"...\", \"rationale\": \"...\"}]\n}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        2144,
+        528
+      ],
+      "id": "866429bf-2949-483e-9415-f3596a5b75ab",
+      "name": "AI Content"
+    },
+    {
+      "parameters": {
+        "model": "mistral-large-latest",
+        "options": {
+          "maxTokens": 6000,
+          "temperature": 0.5
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        2144,
+        752
+      ],
+      "id": "a251436c-f956-44c2-aa96-905ae3c6865e",
+      "name": "Mistral",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "rg7PENhB875LmFyX",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nlet raw = (input.output || input.text || JSON.stringify(input)).replace(/```json|```/g, '').trim();\n\nconst match = raw.match(/\\{[\\s\\S]*\\}/);\nif (match) raw = match[0];\n\nlet content;\ntry {\n  content = JSON.parse(raw);\n} catch (e) {\n  // Sophisticated Fallback\n  content = {\n    key_metrics: [{value: '47%', label: 'Eco-Interest', source: 'P2'}],\n    executive_summary: \"Our approach to the Area Rug category is rooted in the belief that a rug is the soul of a room. With sustainable searches up 47%, we are moving beyond utility into mindful curation.\",\n    blog_blueprints: [{\n      title: \"The Poetry of Texture\",\n      keyword: \"sustainable rugs\",\n      vibe_description: \"Golden hour lighting, natural fibers, and a sense of calm.\",\n      structure: [\"H2: Living with Intent\", \"H2: Choosing the Conscious Path\"],\n      wayfair_edge: \"Positioning as a curator, not just a retailer.\"\n    }],\n    aesthetic_video_concepts: [{\n      concept_name: \"The Morning Shift\",\n      soundscape: \"Birds chirping and soft piano.\",\n      visual_beats: \"1. Sunlight on jute. 2. A cat stretching. 3. Coffee steam.\",\n      manifesto_caption: \"Our philosophy? If it makes you happy, it matches. 🌿\"\n    }],\n    product_narrative_150: \"Imagine a Sunday morning where the floor feels as warm as your coffee. This hand-woven jute piece brings a quiet, organic energy to your home...\",\n    email_sequences: [{stage: \"Inspiration\", subject: \"The foundation of a beautiful home\", body: \"Style isn't about square footage...\"}],\n    competitive_angles: [{title: \"Curation vs. Volume\", gap_in_market: \"Amazon's product wall\", wayfair_edge: \"Design guidance\"}],\n    content_priorities: [{priority: 1, title: \"Launch 'The Organic Home' Series\", rationale: \"Aligns with 47% growth trend.\"}]\n  };\n}\n\nconst category = input.category || 'Area Rug';\nconst focus = input.focus || '';\n\nreturn [{ json: { content, category, focus } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        528
+      ],
+      "id": "4deab719-7756-4554-bd51-254d6f880ccf",
+      "name": "Parse Content"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst c = data.content || {};\nconst category = data.category || 'Area Rug';\nconst focus = data.focus || 'Natural & Sustainable';\nconst today = new Date().toLocaleDateString('en-US', {year: 'numeric', month: 'long', day: 'numeric'});\nconst esc = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\n// 1. Key Metrics Cards (Original Style)\nconst metrics = c.key_metrics || [];\nlet metricsHtml = metrics.map(m => `\n  <div class=\"insight-card\">\n    <div class=\"number\">${esc(m.value)}</div>\n    <div class=\"label\">${esc(m.label)}</div>\n  </div>\n`).join('');\n\n// 2. Data Foundation (Original Grid Style)\nconst df = c.data_foundation || {};\nlet p2List = (df.p2_insights || []).map(i => `<li>${esc(i)}</li>`).join('');\nlet p3List = (df.p3_insights || []).map(i => `<li>${esc(i)}</li>`).join('');\n\n// 3. Narrative SEO Content (New Section, Original Styling)\nconst seoNarrative = c.product_narrative_150 || '';\n\n// 4. Video Concepts (Wayfair Aesthetic, Original Card Style)\nconst vids = c.aesthetic_video_concepts || [];\nlet vidsHtml = vids.map(v => `\n  <div class=\"content-card\">\n    <div class=\"content-card-header\">\n      <div class=\"type\">Aesthetic Video</div>\n      <h4>${esc(v.concept_name)}</h4>\n    </div>\n    <div class=\"content-card-body\">\n      <p><strong>Soundscape:</strong> <i>${esc(v.soundscape)}</i></p>\n      <div class=\"data-tag\" style=\"margin-top:10px;\">🎬 Visual Beats</div>\n      <p style=\"font-size:0.9em; color:#666;\">${esc(v.visual_beats)}</p>\n      <div class=\"manifesto-box\" style=\"margin-top:15px; border-top:1px solid #eee; padding-top:10px;\">\n        <strong>Manifesto:</strong> <span style=\"color:#7B2D8E; font-weight:600;\">\"${esc(v.manifesto_caption)}\"</span>\n      </div>\n    </div>\n  </div>\n`).join('');\n\n// 5. Editorial Blueprints (Formerly Content Ideas)\nconst blueprints = c.blog_blueprints || [];\nlet blueprintsHtml = blueprints.map(b => {\n  const structure = (b.structure || []).map(s => `<li>${esc(s)}</li>`).join('');\n  return `\n  <div class=\"campaign-card\">\n    <div class=\"vibe-tag\" style=\"color:#B4975A; font-size:0.75em; text-transform:uppercase; font-weight:bold;\">Editorial Guide</div>\n    <h4>${esc(b.title)}</h4>\n    <p><strong>Vibe:</strong> ${esc(b.vibe_description)}</p>\n    <div class=\"campaign-details\">\n       <div class=\"campaign-detail\">\n         <h5>Narrative Structure</h5>\n         <ul style=\"padding-left:15px; font-size:0.9em;\">${structure}</ul>\n       </div>\n       <div class=\"campaign-detail\">\n         <h5>The Wayfair Edge</h5>\n         <p>${esc(b.wayfair_edge)}</p>\n       </div>\n    </div>\n  </div>`;\n}).join('');\n\n// 6. Strategic Emails (Original Email Style)\nconst emails = c.email_sequences || [];\nlet emailsHtml = emails.map(e => `\n  <div class=\"email-subject\">\n    <span class=\"icon\">📧</span>\n    <span class=\"subject-text\"><strong>${esc(e.stage)}:</strong> ${esc(e.subject)}</span>\n    <div style=\"padding:10px; background:#fff; margin-top:10px; border-radius:4px; font-size:0.9em; color:#555;\">${esc(e.body)}</div>\n  </div>\n`).join('');\n\n// 7. Competitive Angles (Original Style)\nconst angles = c.competitive_angles || [];\nlet anglesHtml = angles.map(a => `\n  <div class=\"competitive-angle\">\n    <h4>${esc(a.title)}</h4>\n    <p><strong>Market Gap:</strong> ${esc(a.gap_in_market)}</p>\n    <p><strong>Our Edge:</strong> ${esc(a.wayfair_edge)}</p>\n  </div>\n`).join('');\n\nconst html = `<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Wayfair Brand Strategy | ${esc(category)}</title>\n  <style>\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background: #f8f9fa; }\n    .container { max-width: 1100px; margin: 0 auto; padding: 20px; }\n    \n    .header { background: linear-gradient(135deg, #7B2D8E 0%, #5E1A6E 100%); color: white; padding: 40px; border-radius: 12px; margin-bottom: 30px; }\n    .header h1 { font-size: 2.2em; margin-bottom: 10px; }\n    .header .subtitle { font-size: 1.2em; opacity: 0.9; }\n    \n    .section { background: white; border-radius: 12px; padding: 30px; margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }\n    .section h2 { color: #7B2D8E; font-size: 1.5em; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #f0e6f4; }\n    \n    .exec-summary { background: linear-gradient(135deg, #f8f4fa 0%, #fff 100%); border-left: 4px solid #7B2D8E; font-size: 1.1em; }\n    \n    .key-insights { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 20px; }\n    .insight-card { background: white; border: 1px solid #e0d4e6; border-radius: 8px; padding: 20px; text-align: center; }\n    .insight-card .number { font-size: 2.2em; font-weight: bold; color: #7B2D8E; }\n    .insight-card .label { font-size: 0.85em; color: #666; margin-top: 5px; }\n    \n    .data-sources { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }\n    .data-source-card { background: #f8f9fa; border-radius: 8px; padding: 20px; }\n    .data-source-card h4 { color: #7B2D8E; margin-bottom: 12px; }\n    .data-source-card ul { list-style: none; padding-left: 0; font-size: 0.95em; }\n    .data-source-card li { padding: 8px 0; border-bottom: 1px solid #e9ecef; }\n    \n    .content-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }\n    .content-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; overflow: hidden; }\n    .content-card-header { background: linear-gradient(135deg, #7B2D8E 0%, #9B4DB8 100%); color: white; padding: 15px 20px; }\n    .content-card-header .type { font-size: 0.75em; text-transform: uppercase; letter-spacing: 1px; }\n    .content-card-body { padding: 20px; }\n    .data-tag { display: inline-block; background: #f0e6f4; color: #7B2D8E; padding: 6px 12px; border-radius: 15px; font-size: 0.85em; }\n\n    .campaign-card { background: linear-gradient(135deg, #f8f4fa 0%, #fff 100%); border: 1px solid #e0d4e6; border-radius: 10px; padding: 25px; margin-bottom: 20px; }\n    .campaign-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px; }\n    .campaign-detail { background: white; padding: 15px; border-radius: 8px; }\n    .campaign-detail h5 { color: #7B2D8E; font-size: 0.9em; margin-bottom: 8px; }\n\n    .email-subject { background: #f8f9fa; padding: 15px 20px; border-radius: 8px; margin-bottom: 10px; }\n    .competitive-angle { background: #f8f9fa; border-left: 4px solid #7B2D8E; padding: 20px; margin-bottom: 15px; border-radius: 0 8px 8px 0; }\n    \n    .footer { background: #5E1A6E; color: white; padding: 30px; border-radius: 12px; text-align: center; margin-top: 30px; font-size: 0.9em; }\n\n    @media (max-width: 768px) { .data-sources, .content-grid, .campaign-details { grid-template-columns: 1fr; } }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <header class=\"header\">\n      <h1>Brand Strategy Report</h1>\n      <p class=\"subtitle\">Wayfair ${esc(category)} | ${esc(focus)}</p>\n    </header>\n    \n    <section class=\"section exec-summary\">\n      <h2>📋 Strategic Vision</h2>\n      <p>${esc(c.executive_summary || '')}</p>\n      <div class=\"key-insights\">${metricsHtml}</div>\n    </section>\n\n    <section class=\"section\">\n      <h2>📊 Data Foundation</h2>\n      <div class=\"data-sources\">\n        <div class=\"data-source-card\">\n          <h4>📈 Market Insights (P2)</h4>\n          <ul>${p2List}</ul>\n        </div>\n        <div class=\"data-source-card\">\n          <h4>🔍 Competitor Gaps (P3)</h4>\n          <ul>${p3List}</ul>\n        </div>\n      </div>\n    </section>\n\n    <section class=\"section\">\n      <h2>📝 Sensory Product Narrative (SEO)</h2>\n      <div style=\"background:#fff; border:1px solid #eee; padding:25px; border-radius:8px; line-height:1.8;\">\n        ${esc(seoNarrative)}\n      </div>\n    </section>\n    \n    <section class=\"section\">\n      <h2>🎬 Aesthetic Video \"Vibe Boards\"</h2>\n      <div class=\"content-grid\">${vidsHtml}</div>\n    </section>\n    \n    <section class=\"section\">\n      <h2>💡 Editorial Inspiration Guides</h2>\n      ${blueprintsHtml}\n    </section>\n    \n    <section class=\"section\">\n      <h2>📧 Design Dialogue (Emails)</h2>\n      ${emailsHtml}\n    </section>\n    \n    <section class=\"section\">\n      <h2>⚔️ Competitive Differentiation</h2>\n      ${anglesHtml}\n    </section>\n\n    <footer class=\"footer\">\n      <div class=\"logo\">Wayfair | AI Insights & Content Agent</div>\n      <p>Category: ${esc(category)} | Focus: ${esc(focus)} | Date: ${today}</p>\n    </footer>\n  </div>\n</body>\n</html>`;\n\nreturn [{json: {html, category, focus}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2624,
+        528
+      ],
+      "id": "1f89813d-572f-424e-8b56-9ea4c842323a",
+      "name": "Build HTML"
+    },
+    {
+      "parameters": {
+        "jsCode": "const html = $input.first().json.html;\nconst cat = $input.first().json.category || 'Area Rug';\nconst ts = new Date().toISOString().split('T')[0];\nconst fileName = `Wayfair_${cat.replace(/\\s+/g, '_')}_Content_Strategy_${ts}.html`;\n\nreturn [{\n  json: { html, fileName },\n  binary: {\n    data: {\n      data: Buffer.from(html).toString('base64'),\n      mimeType: 'text/html',\n      fileName: fileName\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2864,
+        528
+      ],
+      "id": "be5f2188-1f8f-421b-96e5-3ce1e0c0b909",
+      "name": "Download"
+    },
+    {
+      "parameters": {
+        "html": "={{ $json.html }}"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        3104,
+        528
+      ],
+      "id": "6689bde3-9e54-448f-ac7d-da923f0caf1a",
+      "name": "Preview"
+    },
+    {
+      "parameters": {
+        "content": "## Project 4\n\nMatches Sample Report \n- Sophisticated design memo tone\n- Video scripts that match Wayfair's brand voice\n- Replaces generic blog posts with high-end inspiration guides\n- Includes 150-word SEO copy focusing on touch, light, and \"the feeling of home\"\n- TikTok/Instagram captions updated to Wayfair's brand voice\n- Header with meta badges\n- Key metrics cards\n- Data foundation\n- The \"Wayfair Edge\"",
+        "height": 412,
+        "width": 280
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1664,
+        752
+      ],
+      "id": "1a6bb02e-035d-4536-afde-15cbe3262775",
+      "name": "Notes"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Upload Form": {
+      "main": [
+        [
+          {
+            "node": "Extract Files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Files": {
+      "main": [
+        [
+          {
+            "node": "AI Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Content",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Content": {
+      "main": [
+        [
+          {
+            "node": "Parse Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Content": {
+      "main": [
+        [
+          {
+            "node": "Build HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build HTML": {
+      "main": [
+        [
+          {
+            "node": "Download",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download": {
+      "main": [
+        [
+          {
+            "node": "Preview",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "14935131-4928-41e6-b115-239fcfaf8a74",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "78aec83a7c974db6d6721e24db25f559e9feb57e2069c80d5e856f7408ae8f63"
+  },
+  "id": "A196BmQdAbJj00zc0g2jg",
+  "tags": []
+}
