@@ -1,0 +1,211 @@
+{
+  "name": "P1 - Moodboard Generation Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f4e5fa92-9464-4880-a47d-3e3cde337cf9",
+      "name": "When chat message received",
+      "webhookId": "31ee80b6-0d98-4624-bd56-9600ac89e6fe"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Role: You are an expert image generation prompt engineer.\n\nTask:\nYour role is to take a simple input idea (e.g., “bohemian rugs, neutral tones”) and transform it into one detailed, polished prompt for creating a high-quality visual moodboard.\n\nWhen creating the prompt, follow these guidelines:\n- Highlight the style, colors, and textures implied in the trend.\n- Include close-up material textures, styled interior spaces, and decor elements that complement the rug’s look.\n- Arrange visuals as a clean, inspiration-ready collection that a design team could immediately use for trend insights.\n- Ensure the final output is ready-to-use, simple, and efficient for an image generator."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "adef793b-7397-4662-8060-e951bb6f745b",
+      "name": "Generate Prompt"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        208,
+        192
+      ],
+      "id": "fe36f834-5cd6-4149-8944-0f30bce59084",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "FvFcjhfK7nSfhmNN",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let inputPrompt = $input.first().json.output;\n\n// 1. Remove line breaks\nlet cleanPrompt = inputPrompt.split(/\\r?\\n/).join(\" \");\n\n// 2. Remove Markdown (** and * bullets)\ncleanPrompt = cleanPrompt.replace(/\\*\\*/g, \"\").replace(/\\*/g, \"\");\n\n// 3. Replace double quotes with single quotes\ncleanPrompt = cleanPrompt.replace(/\"/g, \"'\");\n\n// 4. Build n8n-compatible return\nreturn [\n  {\n    json: {\n      prompt: cleanPrompt\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "d58fefa4-ed0d-4995-929a-e6d452e6faa3",
+      "name": "Clean Prompt"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "huggingFaceApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Accept",
+              "value": "image/png"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"inputs\": \"{{ $json.prompt }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        768,
+        0
+      ],
+      "id": "387f63b6-2921-4fd3-8574-2648604cfd54",
+      "name": "Hugging Face Image Generator",
+      "credentials": {
+        "huggingFaceApi": {
+          "id": "4n4g5CXqvlNJ2bA4",
+          "name": "HuggingFaceApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Moodboard Agent:",
+        "height": 496,
+        "width": 1184
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -160,
+        -144
+      ],
+      "typeVersion": 1,
+      "id": "3180c82f-2c31-4de8-9e25-39a054993bc1",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## AI Agent:\nGenerate IMAGE generation prompt according to user message (that is related to \"rugs\" trend).",
+        "height": 464,
+        "width": 336,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        144,
+        -128
+      ],
+      "typeVersion": 1,
+      "id": "6c6f8908-649b-4a60-953a-e30b914a0d95",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Image Generator:\nGemini API call for image generation.\nBy HTTP request we can generate image by trends",
+        "height": 304,
+        "width": 288,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        688,
+        -128
+      ],
+      "typeVersion": 1,
+      "id": "3a6c86e3-536a-4dcc-9fac-ddb726b21dab",
+      "name": "Sticky Note2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Generate Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate Prompt",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Prompt": {
+      "main": [
+        [
+          {
+            "node": "Clean Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean Prompt": {
+      "main": [
+        [
+          {
+            "node": "Hugging Face Image Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "59e0d5b3-838b-4c4d-9122-b81ef5c189ca",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "78aec83a7c974db6d6721e24db25f559e9feb57e2069c80d5e856f7408ae8f63"
+  },
+  "id": "OtbZSu5zEHb0aGAf5uufm",
+  "tags": []
+}
