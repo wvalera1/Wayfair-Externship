@@ -18,7 +18,7 @@ The externship was split into five projects:
 
 ### Final Output and Deliverables
 - [Final Presentation PDF](docs/reports/FinalPresentation.pdf)
-- [Last Generated Dashboard (4-1-26)](docs/reports/Area_rug_Dashboard.html)
+- [Last Generated Dashboard (4-1-26)](docs/reports/Area_Rug_Dashboard.html)
 
 ### Areas For Future Improvement
 There are several areas of focus that I believe will make this workflow much stronger:
