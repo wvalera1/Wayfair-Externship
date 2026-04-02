@@ -17,7 +17,7 @@ The externship was split into five projects:
 - __JavaScript__ (web scraping, data cleaning)
 
 ### Final Output and Deliverables
-- Final Presentation PDF
+- [Final Presentation PDF](docs/reports/FinalPresentation.pdf)
 - [Last Generated Dashboard (4-1-26)](docs/reports/Area_rug_Dashboard.html)
 
 ### Areas For Future Improvement
