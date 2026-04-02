@@ -1,5 +1,6 @@
 ## Workflows
 This folder contains exported n8n workflow JSON files for the following workflows:
+ - Project 1 - Moodboard Generator Agent
  - Project 2 - Consumer Trend Discovery
  - Project 3 - Competitor Monitoring
  - Project 4 - AI Insights & Content Generation
